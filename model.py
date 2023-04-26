@@ -141,7 +141,7 @@ def learn(qTable, worldId=0, mode='explore', learningRate=0.001, gamma=0.9, epsi
             moveNum = np.argmax(qTable[location[0]][location[1]])
 
         # make the move - transition into a new state
-        moveResponse = makeMove(world, numToMove(moveNum))
+        moveResponse = makeMove(worldId, numToMove(moveNum))
 
         if verbose:
             print("moveResponse", moveResponse)
@@ -154,7 +154,7 @@ def learn(qTable, worldId=0, mode='explore', learningRate=0.001, gamma=0.9, epsi
 
             moveFailed = True
             while moveFailed:
-                moveResponse = makeMove(world, numToMove(moveNum))
+                moveResponse = makeMove(worldId, numToMove(moveNum))
 
                 print("\n\ntrying move again!!\n\n")
 

@@ -26,7 +26,7 @@ def explore():
 
     for traverse in range(traverses):
         qTable, goodStates, badStates, obstacles = model.learn(
-            qTable, worldId=world, mode='explore', learningRate=0.0001,
+            qTable, worldId=world, mode='explore', learningRate=0.5,
             gamma=0.9, epsilon=epsilon, goodTermStates=goodStates,
             badTermStates=badStates, traverse=traverse, obstacles=obstacles,
             runNum=runNum, verbose=v)
