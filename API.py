@@ -61,11 +61,12 @@ def makeMove(world, move):
 
     print(jsonData)
 
-    if jsonData['code'] == 'FAIL':
-        return jsonData['message']
+    # if jsonData['code'] == 'FAIL':
+    # return jsonData['message']
 
-    else:
-        return jsonData
+    # else:
+    # return jsonData
+    return jsonData
 
 
 # Operations regarding team
@@ -114,7 +115,7 @@ def resetTeam():
 
 # getScore()
 # getRuns()
-getLocation()
+# getLocation()
 # resetTeam()
 
 # enterWorld(0)

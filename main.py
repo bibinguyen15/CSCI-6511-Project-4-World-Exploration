@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 
-def train():
+def explore():
     goodStates = []
     badStates = []
     obstacles = []
@@ -26,7 +26,7 @@ def train():
 
     for traverse in range(traverses):
         qTable, goodStates, badStates, obstacles = model.learn(
-            qTable, worldId=world, mode='train', learningRate=0.0001,
+            qTable, worldId=world, mode='explore', learningRate=0.0001,
             gamma=0.9, epsilon=epsilon, goodTermStates=goodStates,
             badTermStates=badStates, traverse=traverse, obstacles=obstacles,
             runNum=runNum, verbose=v)
@@ -41,7 +41,7 @@ def train():
 
 def exploit():
     epsilon = 0.9
-    world = int(input("Enter the world to be trained"))
+    world = int(input("Enter the world"))
     traverses = int(input("How many traverses?"))
     verbose = str(input("Verbose? 'Y' or 'N'"))
     filePath = f"./runs/qTableWorld{world}"
@@ -71,10 +71,10 @@ def exploit():
 
 
 def main():
-    inp = input("Training(1) or exploit(2)?")
+    inp = input("Exploring(1) or exploit(2)?")
 
     if inp == "1":
-        train()
+        explore()
     else:
         exploit()
 
