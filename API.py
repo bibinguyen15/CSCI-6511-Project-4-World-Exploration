@@ -26,15 +26,11 @@ def getLocation():
 
     jsonData = json.loads(response.text)
 
-    if jsonData['code'] == 'FAIL':
-        return 'FAIL'
-    else:
-        world, state = jsonData['world'], jsonData['state']
-
-    print(jsonData)
+    print("getLocation():", jsonData)
+    return jsonData
 
 
-def enterWorld(world):
+def enterWorld(world=0):
     payload = {'type': 'enter',
                'worldId': world,
                'teamId': teamId}
@@ -43,7 +39,7 @@ def enterWorld(world):
 
     jsonData = json.loads(response.text)
 
-    print(jsonData)
+    print("enterWorld():", jsonData)
 
     if jsonData['code'] == 'FAIL':
         return jsonData['message']
@@ -116,9 +112,10 @@ def resetTeam():
     return jsonData['code']
 
 
-getRuns()
+# getScore()
+# getRuns()
 getLocation()
-resetTeam()
+# resetTeam()
 
 # enterWorld(0)
 # Response: {'code': 'OK', 'worldId': 0, 'runId': 44176, 'state': '0:0'}
