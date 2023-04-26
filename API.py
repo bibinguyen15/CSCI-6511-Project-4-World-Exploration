@@ -116,7 +116,7 @@ def resetTeam():
 # getScore()
 # getRuns()
 # getLocation()
-# resetTeam()
+resetTeam()
 
 # enterWorld(0)
 # Response: {'code': 'OK', 'worldId': 0, 'runId': 44176, 'state': '0:0'}
