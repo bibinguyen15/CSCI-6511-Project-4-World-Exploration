@@ -41,11 +41,7 @@ def enterWorld(world=0):
 
     print("enterWorld():", jsonData)
 
-    if jsonData['code'] == 'FAIL':
-        return jsonData['message']
-
-    else:
-        return jsonData
+    return jsonData
 
 
 def makeMove(world, move):
@@ -116,10 +112,11 @@ def resetTeam():
 # getScore()
 # getRuns()
 # getLocation()
-resetTeam()
+#resetTeam()
 
-# enterWorld(0)
+#enterWorld(0)
 # Response: {'code': 'OK', 'worldId': 0, 'runId': 44176, 'state': '0:0'}
+# if fail: {'code': 'FAIL', 'message': 'Cannot enter the world.  You are currently in world: 0'}
 
 # makeMove(0, 'N')
 # Response: {'code': 'OK', 'worldId': 0, 'runId': '44176', 'reward': -0.1, 'scoreIncrement': -0.1, 'newState': {'x': '0', 'y': 1}}

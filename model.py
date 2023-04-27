@@ -4,13 +4,14 @@ import random
 import movement_viz as v
 from matplotlib import pyplot
 import os
-
-
-def tableInitiate():
-    return (np.zeros((40, 40, 4)))
+import time
+import utils
 
 
 def numToMove(num):
+    '''
+    Converting each position in np array into direction
+    '''
     if num == 0:
         return 'N'
     elif num == 1:
@@ -24,81 +25,70 @@ def numToMove(num):
     return 'ERROR!'
 
 
-def updateQTable(location, qTable, reward, gamma, newLoc, learningRate, moveNum):
+def updateQTable(location, qTable, reward, gamma, newLoc, alpha, move):
     '''
-    bellman eq: NEW Q(s,a) = Q(s,a) + learning_rate * [R(s,a) + gamma * maxQ'(s',a') - Q(s,a)]
+    new Q(s,a) = (1-alpha)* Q(s,a) + alpha * [R(s,a,s') + gamma * maxQ(s',a')]
     '''
 
-    # collecting the current understanding of the best q value based upon our new location, weight it by gamma and add reward
-    # sample = reward + gamma * \
-    # qTable[newLoc[0], newLoc[1], :].max() - qTable[location[0],
-    # location[1], moveNum]
     sample = reward + gamma * qTable[newLoc[0], newLoc[1], :].max()
 
-    # use the previous location to
-    newQ = (1 - learningRate) * qTable[location[0], location[1],
-                                       moveNum] + learningRate * sample
+    newQ = (1 - alpha) * qTable[location[0], location[1],
+                                move] + alpha * sample
 
     # update q_table with new value
-    qTable[location[0], location[1], moveNum] = newQ
+    qTable[location[0], location[1], move] = newQ
 
 
-def learn(qTable, worldId=0, mode='explore', learningRate=0.001, gamma=0.9, epsilon=0.9, goodTermStates=[], badTermStates=[], traverse=0, obstacles=[], runNum=0, verbose=True):
+def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9, goodStates=[], badStates=[], traverse=0, obstacles=[], runNum=0, verbose=True):
     '''
-    ~MAIN LEARNING FUNCTION~
-    takes in:
-    -the Q-table data structure (numpy 3-dimensional array)
-    -worldID (for api and plotting)
-    -mode (explore or exploit)
-    -learning rate (affects q-table calculation)
-    -gamma (weighting of the rewards)
-    -epsilon (determines the amount of random exploration the agen does)
-    -good_term_states
-    -bad_term_states
-    -eposh
-    -run number
-    -verbosity
-
-    returns: q_table [NumPy Array], good_term_states [list], bad_term_states [list], obstacles [list]
-
-
+    ACTIVE learning function where we are traversing the world
     '''
-
-    # create the api instance
-    #a = api.API(worldId=worldId)
-    #wRes = a.enter_world()
-    wRes = enterWorld(worldId)
+    # Spawning into the world
+    spawn = enterWorld(worldId)
 
     if verbose:
-        print("wRes: ", wRes)
+        print("wRes: ", spawn)
 
-    # init terminal state reached
+    # If spawning failed, that means we're still in some world
+    if spawn['code'] == 'FAIL':
+        message = spawn['message']
+        i = -1
+        while message[i].isdigit():
+            i -= 1
+        worldNum = int(message[i + 1:])
+        if worldNum != worldId:
+            print(
+                f'You are currently in world {worldNum}, would you like to continue exploring that instead?')
+            loadPrevious = input(
+                f"If yes, enter any key; otherwise, to start exploring world{worldId} instead, leave blank: ")
+            if loadPrevious:
+                return -1
+            else:
+                resetTeam()
+                enterWorld(worldId)
+
+    # if successfully get into world, or currently already in that world:
+    locResponse = getLocation()
+    if verbose:
+        print("locResponse", locResponse)
+
+    if locResponse['code'] != 'OK':
+        print(
+            f"getLocation() failed\nResponse: {locResponse}")
+        return -1
+
+    location = int(locResponse["state"].split(':')[0]), int(
+        locResponse["state"].split(':')[1])  # location is a tuple (x, y)
+
+    # Initialize terminal states and state tracker
     terminalState = False
-
-    # create a var to track the type of terminal state
     good = False
 
     # accumulate the rewards so far for plotting reward over step
     rewardsAcquired = []
 
-    # find out where we are
-    locResponse = getLocation()
-
     # create a list of everywhere we've been for the viz
     visited = []
-
-    if verbose:
-        print("locResponse", locResponse)
-
-    # OK response looks like {"code":"OK","world":"0","state":"0:2"}
-    if locResponse['code'] != 'OK':
-        print(
-            f"something broke on getLocation() call \nresponse looks like: {locResponse}")
-        return -1
-
-    # convert JSON into a tuple (x,y)
-    location = int(locResponse["state"].split(':')[0]), int(
-        locResponse["state"].split(':')[1])  # location is a tuple (x, y)
 
     # SET UP FIGURE FOR VISUALIZATION.
     pyplot.figure(1, figsize=(10, 10))
@@ -106,6 +96,7 @@ def learn(qTable, worldId=0, mode='explore', learningRate=0.001, gamma=0.9, epsi
 
     # keep track of where we've been for the visualization
     visited.append(location)
+
     while True:
         # ////////////////// CODE FOR VISUALIZATION
         currBoard[location[1]][location[0]] = 1
@@ -116,13 +107,16 @@ def learn(qTable, worldId=0, mode='explore', learningRate=0.001, gamma=0.9, epsi
         for obstacle in obstacles:
             if obstacle in visited:
                 obstacles.remove(obstacle)
-        v.update_grid(currBoard, goodTermStates, badTermStates,
+        v.update_grid(currBoard, goodStates, badStates,
                       obstacles, runNum, traverse, worldId, location, verbose)
         # //////////////// END CODE FOR VISUALIZATION
 
-        # in q-table, get index of best option for movement based on our current state in the world
+        '''
+        NOTE: this is the part that's utilizing Greedy epsilon.
+        If possible, we might want to use POLO instead
+        '''
+        # Choosing the next move by epsilon greedy
         if mode == 'explore':
-            # use an epsilon greedy approach to randomly explore or exploit
             if np.random.uniform() < epsilon:
                 unexploitd = np.where(
                     qTable[location[0]][location[1]].astype(int) == 0)[0]
@@ -136,8 +130,8 @@ def learn(qTable, worldId=0, mode='explore', learningRate=0.001, gamma=0.9, epsi
             else:
                 moveNum = np.argmax(qTable[location[0]][location[1]])
 
+        #If exploiting, we're choosing the move with the highest Q value for that position in the world
         else:
-            # mode is exploit -we'll use what we already have in the q-table to decide on our moves
             moveNum = np.argmax(qTable[location[0]][location[1]])
 
         # make the move - transition into a new state
@@ -148,28 +142,29 @@ def learn(qTable, worldId=0, mode='explore', learningRate=0.001, gamma=0.9, epsi
         # OK response looks like {"code":"OK","worldId":0,"runId":"931","reward":-0.1000000000,"scoreIncrement":-0.0800000000,"newState":{"x":"0","y":3}}
 
         if moveResponse["code"] != "OK":
-            # handel the unexpected
             print(
-                f"something broke on makeMove call \nresponse lookes like: {moveResponse}")
+                f"makeMove() failed\nResponse: {moveResponse}")
 
             moveFailed = True
             while moveFailed:
                 moveResponse = makeMove(worldId, numToMove(moveNum))
-
-                print("\n\ntrying move again!!\n\n")
+                time.sleep(2)
+                print("\n\nRetrying move...\n\n")
 
                 if moveResponse["code"] == 'OK':
-                    move_failed = False
+                    moveFailed = False
 
-        # check that we're not in a terminal state, and if not convert new location JSON into tuple
+        # Not in terminal state
         if moveResponse["newState"] is not None:
-            # we're now in newLoc, which will be a tuple of where we are according to the API
-            # KEEP IN MIND the movment of our agent is apparently STOCHASTIC
             newLoc = int(moveResponse["newState"]["x"]), int(
-                moveResponse["newState"]["y"])  # tuple (x,y)
+                moveResponse["newState"]["y"])
 
-            # keep track of if we hit any obstacles
-            expectedLoc = list(location)
+            '''
+            NOTE: note sure any of this is needed but will leave it here for now until further information is found
+            '''
+
+            # Get expected location
+            expectedLoc = list(location) #since tuple cannot be changed
 
             # convert the move we tried to make into an expected location where we think we'll end up (expected_loc)
             recentMove = numToMove(moveNum)
@@ -190,9 +185,13 @@ def learn(qTable, worldId=0, mode='explore', learningRate=0.001, gamma=0.9, epsi
                 print(
                     f"Expected Loc: {expectedLoc} (where we thought we were going to be):")
 
-            if (mode == "explore"):
+            if (mode == "explore") and newLoc != expectedLoc:
                 obstacles.append(expectedLoc)
 
+            '''
+            NOTE: not sure if this needs to be
+            Why would append newLoc if the newLoc has been visited before?
+            '''
             # continue to track where we have been
             visited.append(newLoc)
 
@@ -207,17 +206,18 @@ def learn(qTable, worldId=0, mode='explore', learningRate=0.001, gamma=0.9, epsi
             print(
                 "\n\n--------------------------\nTERMINAL STATE ENCOUNTERED\n--------------------------\n\n")
 
-        # get the reward for the most recent move we made
+        # Calculate reward
         reward = float(moveResponse["reward"])
-
-        # add reward to plot
         rewardsAcquired.append(reward)
 
-        # if we are exploring the model then update the q-table for the state we were in before
-        # using the bellman-human algorithim
+        '''
+        NOTE: not sure why only update Q values if explore, 
+        since the point of RL is that we keep learning,
+        even if we're traversing a path known
+        '''
         if mode == 'explore':
             updateQTable(location, qTable, reward, gamma,
-                         newLoc, learningRate, moveNum)
+                         newLoc, alpha, moveNum)
 
         # update our current location variable to our now current location
         location = newLoc
@@ -227,18 +227,24 @@ def learn(qTable, worldId=0, mode='explore', learningRate=0.001, gamma=0.9, epsi
         if terminalState:
             print(f"Terminal State REWARD: {reward}")
 
+            '''
+            NOTE: I just realized at this point that aside from this, we're not taking
+            into account the good or bad states at all when choosing a move.
+            Something we can look into tomorrow to implement for a more successful algo
+            '''
+
             if reward > 0:
                 # we hit a positive reward so keep track of it as a good reward terminal-state
                 good = True
-            if not(location in goodTermStates) and not(location in badTermStates):
+            if not(location in goodStates) and not(location in badStates):
                 # update our accounting of good and bad terminal states for the visualization
                 if good:
-                    goodTermStates.append(location)
+                    goodStates.append(location)
                 else:
-                    badTermStates.append(location)
+                    badStates.append(location)
 
             # update our visualization a last time before moving onto the next traverse
-            v.update_grid(currBoard, goodTermStates, badTermStates,
+            v.update_grid(currBoard, goodStates, badStates,
                           obstacles, runNum, traverse, worldId, location, verbose)
             break
 
@@ -251,7 +257,7 @@ def learn(qTable, worldId=0, mode='explore', learningRate=0.001, gamma=0.9, epsi
     # plot reward over each step of the agent
     utils.plot_learning(worldId, traverse, cumulative_average, runNum)
 
-    return qTable, goodTermStates, badTermStates, obstacles
+    return qTable, goodStates, badStates, obstacles
 
 
 def plot_learning(worldId, traverse, cumulativeAverage, rn):
@@ -275,3 +281,15 @@ def epsilonDecay(epsilon, traverse, traverses):
 
     print(f"\nNEW EPSILON: {epsilon}\n")
     return epsilon
+
+
+'''
+MORE NOTES:
+Alpha needs to be decaying as well, but there's no function for that.
+Will add in tomorrow
+It seems that they're not taking into account of when we're at the border of the map
+This makes it inefficient since it might randomly choose to go left when it's already
+at the border of the map and then adding that to "badStates" (which I don't think is 
+even a necessary record). 
+We can think about how to alleviate that tomorrow.
+'''
