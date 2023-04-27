@@ -30,7 +30,7 @@ def explore():
             gamma=0.9, epsilon=epsilon, goodTermStates=goodStates,
             badTermStates=badStates, traverse=traverse, obstacles=obstacles,
             runNum=runNum, verbose=v)
-        epsilon = model.epsilon_decay(epsilon, traverse, traverses)
+        epsilon = model.epsilonDecay(epsilon, traverse, traverses)
 
         np.save(filePath, qTable)
 
