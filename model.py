@@ -1,12 +1,9 @@
 import numpy as np
 from API import *
-import random
-import movement_viz as v
+import visualization as v
 from matplotlib import pyplot
 import os
 import time
-import utils
-
 
 def numToMove(num):
     '''
@@ -98,7 +95,7 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
     visited.append(location)
 
     while True:
-        # ////////////////// CODE FOR VISUALIZATION
+        # Visualization 
         currBoard[location[1]][location[0]] = 1
         for i in range(len(currBoard)):
             for j in range(len(currBoard)):
@@ -107,9 +104,9 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
         for obstacle in obstacles:
             if obstacle in visited:
                 obstacles.remove(obstacle)
-        v.update_grid(currBoard, goodStates, badStates,
+        v.updateGrid(currBoard, goodStates, badStates,
                       obstacles, runNum, traverse, worldId, location, verbose)
-        # //////////////// END CODE FOR VISUALIZATION
+        # 
 
         '''
         NOTE: this is the part that's utilizing Greedy epsilon.
@@ -252,22 +249,22 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
     pyplot.figure(2, figsize=(5, 5))
 
     # cumulative average for plotting reward by step over time purposes
-    cumulative_average = np.cumsum(
+    cumulativeAverage = np.cumsum(
         rewardsAcquired) / (np.arange(len(rewardsAcquired)) + 1)
     # plot reward over each step of the agent
-    utils.plot_learning(worldId, traverse, cumulative_average, runNum)
+    plotLearning(worldId, traverse, cumulativeAverage, runNum)
 
     return qTable, goodStates, badStates, obstacles
 
 
-def plot_learning(worldId, traverse, cumulativeAverage, rn):
+def plotLearning(worldId, traverse, cumulativeAverage, runNum):
     pyplot.figure(2)
     pyplot.plot(cumulativeAverage)
     pyplot.xscale('log')
-    if not os.path.exists(f'runs/world_{worldId}/attempt_{rn}'):
-        os.makedirs(f'runs/world_{worldId}/attempt_{rn}')
+    if not os.path.exists(f'runs/world_{worldId}/attempt_{runNum}'):
+        os.makedirs(f'runs/world_{worldId}/attempt_{runNum}')
     pyplot.savefig(
-        f'runs/world_{worldId}/attempt_{rn}/world_{worldId}_traverse{traverse}learning.png')
+        f'runs/world_{worldId}/attempt_{runNum}/world_{worldId}_traverse{traverse}learning.png')
 
 
 def epsilonDecay(epsilon, traverse, traverses):

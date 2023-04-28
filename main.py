@@ -58,9 +58,9 @@ def explore():
 
     # Save once at the end
     np.save(filename, qTable)
-    np.save(f"./runs/obstaclesWorld{world}", obstacles)
-    np.save(f"./runs/goodStatesWorld{world}", goodStates)
-    np.save(f"./runs/badStatesWorld{world}", badStates)
+    np.save(f"./runs/world{world}/obstaclesWorld{world}", obstacles)
+    np.save(f"./runs/world{world}/goodStatesWorld{world}", goodStates)
+    np.save(f"./runs/world{world}/badStatesWorld{world}", badStates)
 
 
 '''
