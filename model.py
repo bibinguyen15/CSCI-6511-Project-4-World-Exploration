@@ -261,10 +261,10 @@ def plotLearning(worldId, traverse, cumulativeAverage, runNum):
     pyplot.figure(2)
     pyplot.plot(cumulativeAverage)
     pyplot.xscale('log')
-    if not os.path.exists(f'runs/world_{worldId}/attempt_{runNum}'):
-        os.makedirs(f'runs/world_{worldId}/attempt_{runNum}')
+    if not os.path.exists(f'runs/world{worldId}/attempt{runNum}'):
+        os.makedirs(f'runs/world{worldId}/attempt{runNum}')
     pyplot.savefig(
-        f'runs/world_{worldId}/attempt_{runNum}/world_{worldId}_traverse{traverse}learning.png')
+        f'runs/world{worldId}/attempt{runNum}/world{worldId}traverse{traverse}learning.png')
 
 
 def epsilonDecay(epsilon, traverse, traverses):
