@@ -23,30 +23,25 @@ print(data)
 '''
 
 world = 0
-#filename = f"./runs/qTable{world}.npy"
+
 filename = f"./runs/obstaclesWorld{world}.npy"
-#qTable = np.load(filename)
-obstacles = np.load(filename)
-obstacles = list(obstacles)
 
-print(obstacles)
-#for x in range(len(obstacles)):
-#obstacles[x] = tuple(obstacles)
 
-print(obstacles)
-
-'''
+filename = f"./runs/qTable{world}.npy"
+qTable = np.load(filename)
 #print(qTable)
-for x in range(len(obstacles)):
-    for y in range(len(obstacles)):
+for x in range(40):
+    for y in range(40):
         #if x == y:
         #qTable[x][y][x % 4 - 1] = x +
-        print(f'x={x}, y={y}')
+        #print(f'x={x}, y={y}')
         print(qTable[x][y], end="  ")
 
     print()
 #qTable = np.zeros((40, 40, 4))
 #np.save(filename, qTable)
+'''
+
 '''
 
 '''

@@ -30,6 +30,7 @@ def explore():
         np.save(filename, np.zeros((40, 40, 4)))
     qTable = np.load(filename)
 
+    '''
     # Loading obstacles, goodStates, and badStates
     if not os.path.isfile(f"./runs/obstaclesWorld{world}.npy"):
         obstacles = []
@@ -45,6 +46,8 @@ def explore():
         badStates = []
     else:
         badStates = np.load(f"./runs/badStatesWorld{world}.npy")
+    '''
+    obstacles, goodStates, badStates = [], [], []
 
     runNum = len([i for i in os.listdir(f"runs/world{world}")])
 
