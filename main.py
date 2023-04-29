@@ -56,11 +56,12 @@ def explore():
             runNum=runNum, verbose=v)
         epsilon = model.epsilonDecay(epsilon, traverse, traverses)
 
+    print(qTable)
     # Save once at the end
     np.save(filename, qTable)
-    np.save(f"./runs/obstaclesWorld{world}", obstacles)
-    np.save(f"./runs/goodStatesWorld{world}", goodStates)
-    np.save(f"./runs/badStatesWorld{world}", badStates)
+    np.save(f"./runs/obstaclesWorld{world}.npy", obstacles)
+    np.save(f"./runs/goodStatesWorld{world}.npy", goodStates)
+    np.save(f"./runs/badStatesWorld{world}.npy", badStates)
 
 
 '''

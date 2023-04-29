@@ -47,10 +47,10 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
     spawn = enterWorld(worldId)
 
     if verbose:
-        print("wRes: ", spawn)
+        print("Spawn: ", spawn)
 
     # If spawning failed, that means we're still in some world
-    if spawn['code'] == 'FAIL':
+    if spawn['code'] != 'OK':
         message = spawn['message']
         i = -1
         while message[i].isdigit():
@@ -61,9 +61,7 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
                 f'You are currently in world {worldNum}, would you like to continue exploring that instead?')
             loadPrevious = input(
                 f"If yes, enter any key; otherwise, to start exploring world{worldId} instead, leave blank: ")
-            if loadPrevious:
-                return -1
-            else:
+            if not loadPrevious:
                 resetTeam()
                 enterWorld(worldId)
 
@@ -105,7 +103,8 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
                 if (currBoard[i][j] != 0):
                     currBoard[i][j] -= .1
         for obstacle in obstacles:
-            if obstacle in visited:
+            print(obstacles, obstacle, visited)
+            if tuple(obstacle) in visited:
                 obstacles.remove(obstacle)
         v.update_grid(currBoard, goodStates, badStates,
                       obstacles, runNum, traverse, worldId, location, verbose)
@@ -178,12 +177,12 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
             elif recentMove == "W":
                 expectedLoc[0] -= 1
 
-            expectedLoc = tuple(expectedLoc)
+            expectedLoc = expectedLoc
 
             if verbose:
-                print(f"New Loc: {newLoc} (where we actually are now):")
+                print(f"New Loc: {newLoc} (where we actually are now)")
                 print(
-                    f"Expected Loc: {expectedLoc} (where we thought we were going to be):")
+                    f"Expected Loc: {expectedLoc} (where we thought we were going to be)")
 
             if (mode == "explore") and newLoc != expectedLoc:
                 obstacles.append(expectedLoc)
@@ -197,7 +196,7 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
 
             # if we placed an obstacle there in the vis, remove it
             for obstacle in obstacles:
-                if obstacle in visited:
+                if tuple(obstacle) in visited:
                     obstacles.remove(obstacle)
 
         else:
@@ -218,7 +217,7 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
         if mode == 'explore':
             updateQTable(location, qTable, reward, gamma,
                          newLoc, alpha, moveNum)
-
+        print(qTable)
         # update our current location variable to our now current location
         location = newLoc
 
