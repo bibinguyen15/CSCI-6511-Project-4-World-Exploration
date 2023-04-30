@@ -67,7 +67,7 @@ print(qTable)
 '''
 
 
-#Another learning rate decay function
+# Another learning rate decay function
 def decayAlpha(epoch):
     initialRate = 0.9
     drop = 0.5
@@ -76,7 +76,7 @@ def decayAlpha(epoch):
         math.pow(drop, math.floor((1 + epoch) / epochsDrop))
     return alpha
 
-#Another epsilon decay function
+# Another epsilon decay function
 
 
 def decayEpsilon(epsilon, epoch):
@@ -86,5 +86,5 @@ def decayEpsilon(epsilon, epoch):
     return epsilon
 
 
-printQTable(0)
+printQTable(1, False)
 

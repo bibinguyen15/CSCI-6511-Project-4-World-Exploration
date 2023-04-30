@@ -29,25 +29,23 @@ def explore():
             badStates=badStates, traverse=epoch, obstacles=obstacles,
             verbose=v)
 
+        end = time.time()
+
         epoch += 1
         epsilon = model.epsilonDecay(epsilon, epoch)
         alpha = model.alphaDecay(alpha, epoch)
 
-        end = time.time()
-
         print(f'Time taken for world{world}, epoch{epoch}: {end-start}s')
 
-    #print(qTable)
+        # Save every run in case we have to end the runs midway through
+        np.save(f"./runs/world{world}/qTable{world}.npy", qTable)
 
-    # Save once at the end
-    np.save(f"./runs/world{world}/qTable{world}.npy", qTable)
+        #np.save(f"./runs/obstaclesWorld{world}.npy", obstacles)
+        np.save(f"./runs/goodStatesWorld{world}.npy", goodStates)
+        np.save(f"./runs/badStatesWorld{world}.npy", badStates)
 
-    #np.save(f"./runs/obstaclesWorld{world}.npy", obstacles)
-    #np.save(f"./runs/goodStatesWorld{world}.npy", goodStates)
-    #np.save(f"./runs/badStatesWorld{world}.npy", badStates)
-
-    np.save(f"./runs/world{world}/parameters{world}.npy",
-            np.array([gamma, epsilon, alpha, epoch]))
+        np.save(f"./runs/world{world}/parameters{world}.npy",
+                np.array([gamma, epsilon, alpha, epoch]))
 
 
 '''
@@ -105,7 +103,7 @@ def getData(world):
         obstacles = []
     else:
         obstacles = np.load(f"{filepath}obstaclesWorld{world}.npy")
-
+        '''
     if not os.path.isfile(f"{filepath}goodStatesWorld{world}.npy"):
         goodStates = []
     else:
@@ -115,19 +113,18 @@ def getData(world):
         badStates = []
     else:
         badStates = np.load(f"{filepath}badStatesWorld{world}.npy")
-    '''
 
-    obstacles, goodStates, badStates = [], [], []
+    obstacles = []
 
-    #Loading parameters
+    # Loading parameters
     if not os.path.isfile(f'{filepath}parameters{world}.npy'):
 
-        #Beginnning parameters for gamma, epsilon, alpha, and epochs
-        #gamma = 0.95 - no changes
-        #epsilon = 0.9 starting out - then decaying
-        #alpha = 0.5 starting out - then decaying
-        #epochs = the number of runs so far for that world
-        parameters = np.array([0.95, 0.9, 0.5, 0])
+        # Beginnning parameters for gamma, epsilon, alpha, and epochs
+        # gamma = 0.95 - no changes
+        # epsilon = 0.9 starting out - then decaying
+        # alpha = 0.5 starting out - then decaying
+        # epochs = the number of runs so far for that world
+        parameters = np.array([0.95, 0., 0.5, 0])
     else:
         parameters = np.load(f'{filepath}parameters{world}.npy')
 

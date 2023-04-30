@@ -123,7 +123,7 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
             else:
                 moveNum = np.argmax(qTable[location[0]][location[1]])
 
-        #If exploiting, we're choosing the move with the highest Q value for that position in the world
+        # If exploiting, we're choosing the move with the highest Q value for that position in the world
         else:
             moveNum = np.argmax(qTable[location[0]][location[1]])
 
@@ -157,7 +157,7 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
             '''
 
             # Get expected location
-            expectedLoc = list(location) #since tuple cannot be changed
+            expectedLoc = list(location)  # since tuple cannot be changed
 
             # convert the move we tried to make into an expected location where we think we'll end up (expected_loc)
             recentMove = numToMove(moveNum)
@@ -255,8 +255,12 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
 
 
 def epsilonDecay(epsilon, traverse):
-    epsilon = epsilon * np.exp(-.01 * traverse)
-    #print(f"\nNEW EPSILON: {epsilon}\n")
+    if traverse < 5 or epsilon > 0.31:
+        epsilon = epsilon * np.exp(-.1 * traverse)
+    else:
+        epsilon = epsilon * np.exp(-.01 * traverse)
+
+    print(f"\nNEW EPSILON: {epsilon}\n")
 
     return epsilon
 
@@ -264,6 +268,8 @@ def epsilonDecay(epsilon, traverse):
 def alphaDecay(alpha, epoch):
     decayRate = 0.1
     alpha *= (1 / (1 + decayRate * epoch))
+
+    print(f"\nNEW ALPHA: {alpha}\n")
 
     return alpha
 
