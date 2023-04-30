@@ -86,5 +86,9 @@ def decayEpsilon(epsilon, epoch):
     return epsilon
 
 
-printQTable(1, False)
+#printQTable(1, False)
+epsilon = 0.95
+for i in range(1, 16):
+    epsilon = epsilonDecay(epsilon, i)
+    print(epsilon)
 

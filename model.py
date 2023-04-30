@@ -255,7 +255,7 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
 
 
 def epsilonDecay(epsilon, traverse):
-    if traverse < 5 or epsilon > 0.31:
+    if traverse < 5:
         epsilon = epsilon * np.exp(-.1 * traverse)
     else:
         epsilon = epsilon * np.exp(-.01 * traverse)

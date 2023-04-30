@@ -124,7 +124,7 @@ def getData(world):
         # epsilon = 0.9 starting out - then decaying
         # alpha = 0.5 starting out - then decaying
         # epochs = the number of runs so far for that world
-        parameters = np.array([0.95, 0., 0.5, 0])
+        parameters = np.array([0.95, 0.9, 0.5, 0])
     else:
         parameters = np.load(f'{filepath}parameters{world}.npy')
 
