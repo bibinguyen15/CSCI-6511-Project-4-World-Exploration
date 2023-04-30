@@ -41,8 +41,9 @@ def explore():
         np.save(f"./runs/world{world}/qTable{world}.npy", qTable)
 
         #np.save(f"./runs/obstaclesWorld{world}.npy", obstacles)
-        np.save(f"./runs/goodStatesWorld{world}.npy", goodStates)
-        np.save(f"./runs/badStatesWorld{world}.npy", badStates)
+        np.save(
+            f"./runs/world{world}/goodStatesWorld{world}.npy", goodStates)
+        np.save(f"./runs/world{world}/badStatesWorld{world}.npy", badStates)
 
         np.save(f"./runs/world{world}/parameters{world}.npy",
                 np.array([gamma, epsilon, alpha, epoch]))

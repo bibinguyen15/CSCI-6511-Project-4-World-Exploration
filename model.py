@@ -116,8 +116,21 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
                 exploitd = np.where(
                     qTable[location[0]][location[1]].astype(int) != 0)[0]
 
+                #Handling avoiding certain moves if at border
+                avoid, void = -1, -1
+                if location[0] == 0:
+                    avoid = 3 #avoid going west
+                elif location[0] == 39:
+                    avoid = 2  #avoid going east
+                if location[1] == 0:
+                    void = 1 #avoid going south
+                elif location[1] == 39:
+                    void = 0 #avoid going north
+
                 if unexploitd.size != 0:
-                    moveNum = int(np.random.choice(unexploitd))
+                    choice = [i for i in unexploitd if i
+                              != avoid and i != void]
+                    moveNum = int(np.random.choice(choice))
                 else:
                     moveNum = int(np.random.choice(exploitd))
             else:

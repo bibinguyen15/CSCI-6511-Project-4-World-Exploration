@@ -16,9 +16,9 @@ def updateGrid(data, goodStates, badStates, obstacles, epoch, world, location, v
     for z in obstacles:
         pyplot.plot(z[0], z[1], marker="s", color='k')
     for x in goodStates:
-        pyplot.plot(x[0], x[1], marker="s", color='b')
+        pyplot.plot(x[0], x[1], marker="P", color='b')
     for y in badStates:
-        pyplot.plot(y[0], y[1], marker="s", color='r')
+        pyplot.plot(y[0], y[1], marker="X", color='r')
     pyplot.plot(location[0], location[1], marker="*", color='indigo')
 
     # use verbosity to adjust the visibility of the plot

@@ -26,7 +26,7 @@ def getLocation():
 
     jsonData = json.loads(response.text)
 
-    print("getLocation():", jsonData)
+    #print("getLocation():", jsonData)
     return jsonData
 
 
@@ -55,13 +55,8 @@ def makeMove(world, move):
 
     jsonData = json.loads(response.text)
 
-    print(jsonData)
+    #print(jsonData)
 
-    # if jsonData['code'] == 'FAIL':
-    # return jsonData['message']
-
-    # else:
-    # return jsonData
     return jsonData
 
 
