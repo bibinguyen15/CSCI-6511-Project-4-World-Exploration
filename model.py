@@ -38,7 +38,7 @@ def updateQTable(location, qTable, reward, gamma, newLoc, alpha, move):
     qTable[location[0], location[1], move] = newQ
 
 
-def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, traverse, obstacles, verbose=True):
+def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, traverse, verbose=True):
     '''
     ACTIVE learning function where we are traversing the world
     '''
@@ -101,12 +101,9 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
             for j in range(len(currBoard)):
                 if (currBoard[i][j] != 0):
                     currBoard[i][j] -= .1
-        for obstacle in obstacles:
-            #print(obstacles, obstacle, visited)
-            if tuple(obstacle) in visited:
-                obstacles.remove(obstacle)
+
         v.updateGrid(currBoard, goodStates, badStates,
-                     obstacles, int(traverse), world, location, verbose)
+                     int(traverse), world, location, verbose)
         # //////////////// END CODE FOR VISUALIZATION
 
         if mode == 'explore':
@@ -134,6 +131,12 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
                 else:
                     moveNum = int(np.random.choice(exploitd))
             else:
+                #When not exploring randomly
+                #Since we're setting low epsilon, we need to take into consider this
+                if not np.any(qTable[location[0]][location[1]]):
+                    print("Taking random choice:", end=" ")
+                    moveNum = int(np.random.choice(np.arange(4)))
+                    print(moveNum)
                 moveNum = np.argmax(qTable[location[0]][location[1]])
 
         # If exploiting, we're choosing the move with the highest Q value for that position in the world
@@ -167,7 +170,7 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
 
             '''
             NOTE: note sure any of this is needed but will leave it here for now until further information is found
-            '''
+
 
             # Get expected location
             expectedLoc = list(location)  # since tuple cannot be changed
@@ -190,9 +193,7 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
                 print(f"New Loc: {newLoc} (where we actually are now)")
                 print(
                     f"Expected Loc: {expectedLoc} (where we thought we were going to be)")
-
-            if (mode == "explore") and newLoc != expectedLoc:
-                obstacles.append(expectedLoc)
+            '''
 
             '''
             NOTE: not sure if this needs to be
@@ -200,11 +201,6 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
             '''
             # continue to track where we have been
             visited.append(newLoc)
-
-            # if we placed an obstacle there in the vis, remove it
-            for obstacle in obstacles:
-                if tuple(obstacle) in visited:
-                    obstacles.remove(obstacle)
 
         else:
             # we hit a terminal state
@@ -251,7 +247,7 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
 
             # update our visualization a last time before moving onto the next traverse
             v.updateGrid(currBoard, goodStates, badStates,
-                         obstacles, int(traverse), world, location, verbose)
+                         int(traverse), world, location, verbose)
             break
 
     # possibly not needed but this seperates out the plot
@@ -264,12 +260,13 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
     # plot reward over each step of the agent
     v.plotLearning(world, int(traverse), cumulativeAverage)
 
-    return qTable, goodStates, badStates, obstacles
+    return qTable, goodStates, badStates
 
 
 def epsilonDecay(epsilon, traverse):
-    if traverse < 5:
+    if traverse < 5 or epsilon > 0.15:
         epsilon = epsilon * np.exp(-.1 * traverse)
+    #elif epsilon > 0.1:
     else:
         epsilon = epsilon * np.exp(-.01 * traverse)
 

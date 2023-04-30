@@ -16,17 +16,17 @@ def explore():
     v = True if verbose.capitalize() == "Y" else False
 
     # Get saved data
-    qTable, obstacles, goodStates, badStates, parameters = getData(world)
+    qTable, goodStates, badStates, parameters = getData(world)
     gamma, epsilon, alpha, epoch = parameters
 
     # Traversal
     for traverse in range(1, traverses + 1):
         start = time.time()
 
-        qTable, goodStates, badStates, obstacles = model.learn(
+        qTable, goodStates, badStates = model.learn(
             qTable, world=world, mode='explore', alpha=alpha,
             gamma=gamma, epsilon=epsilon, goodStates=goodStates,
-            badStates=badStates, traverse=epoch, obstacles=obstacles,
+            badStates=badStates, traverse=epoch,
             verbose=v)
 
         end = time.time()
@@ -40,7 +40,6 @@ def explore():
         # Save every run in case we have to end the runs midway through
         np.save(f"./runs/world{world}/qTable{world}.npy", qTable)
 
-        #np.save(f"./runs/obstaclesWorld{world}.npy", obstacles)
         np.save(
             f"./runs/world{world}/goodStatesWorld{world}.npy", goodStates)
         np.save(f"./runs/world{world}/badStatesWorld{world}.npy", badStates)
@@ -98,38 +97,31 @@ def getData(world):
         np.save(filename, np.zeros((40, 40, 4)))
     qTable = np.load(filename)
 
-    '''
-    # Loading obstacles, goodStates, and badStates
-    if not os.path.isfile(f"{filepath}obstaclesWorld{world}.npy"):
-        obstacles = []
-    else:
-        obstacles = np.load(f"{filepath}obstaclesWorld{world}.npy")
-        '''
     if not os.path.isfile(f"{filepath}goodStatesWorld{world}.npy"):
         goodStates = []
     else:
-        goodStates = np.load(f"{filepath}goodStatesWorld{world}.npy")
+        good = np.load(f"{filepath}goodStatesWorld{world}.npy")
+        goodStates = good.tolist()
 
     if not os.path.isfile(f"{filepath}badStatesWorld{world}.npy"):
         badStates = []
     else:
-        badStates = np.load(f"{filepath}badStatesWorld{world}.npy")
-
-    obstacles = []
+        bad = np.load(f"{filepath}badStatesWorld{world}.npy")
+        badStates = bad.tolist()
 
     # Loading parameters
     if not os.path.isfile(f'{filepath}parameters{world}.npy'):
 
         # Beginnning parameters for gamma, epsilon, alpha, and epochs
         # gamma = 0.95 - no changes
-        # epsilon = 0.9 starting out - then decaying
+        # epsilon = 0.6 starting out - then decaying
         # alpha = 0.5 starting out - then decaying
         # epochs = the number of runs so far for that world
-        parameters = np.array([0.95, 0.9, 0.5, 0])
+        parameters = np.array([0.95, 0.5, 0.1, 0])
     else:
         parameters = np.load(f'{filepath}parameters{world}.npy')
 
-    return qTable, obstacles, goodStates, badStates, parameters
+    return qTable, goodStates, badStates, parameters
 
 
 def printQTable(world=0, param=True):
