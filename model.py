@@ -1,11 +1,10 @@
 import numpy as np
 from API import *
 import random
-import movement_viz as v
+import visualization as v
 from matplotlib import pyplot
 import os
 import time
-import utils
 
 
 def numToMove(num):
@@ -39,12 +38,12 @@ def updateQTable(location, qTable, reward, gamma, newLoc, alpha, move):
     qTable[location[0], location[1], move] = newQ
 
 
-def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9, goodStates=[], badStates=[], traverse=0, obstacles=[], runNum=0, verbose=True):
+def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, traverse, obstacles, verbose=True):
     '''
     ACTIVE learning function where we are traversing the world
     '''
     # Spawning into the world
-    spawn = enterWorld(worldId)
+    spawn = enterWorld(world)
 
     if verbose:
         print("Spawn: ", spawn)
@@ -56,14 +55,14 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
         while message[i].isdigit():
             i -= 1
         worldNum = int(message[i + 1:])
-        if worldNum != worldId:
+        if worldNum != world:
             print(
                 f'You are currently in world {worldNum}, would you like to continue exploring that instead?')
             loadPrevious = input(
-                f"If yes, enter any key; otherwise, to start exploring world{worldId} instead, leave blank: ")
+                f"If yes, enter any key; otherwise, to start exploring world{world} instead, leave blank: ")
             if not loadPrevious:
                 resetTeam()
-                enterWorld(worldId)
+                enterWorld(world)
 
     # if successfully get into world, or currently already in that world:
     locResponse = getLocation()
@@ -103,18 +102,13 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
                 if (currBoard[i][j] != 0):
                     currBoard[i][j] -= .1
         for obstacle in obstacles:
-            print(obstacles, obstacle, visited)
+            #print(obstacles, obstacle, visited)
             if tuple(obstacle) in visited:
                 obstacles.remove(obstacle)
-        v.update_grid(currBoard, goodStates, badStates,
-                      obstacles, runNum, traverse, worldId, location, verbose)
+        v.updateGrid(currBoard, goodStates, badStates,
+                     obstacles, int(traverse), world, location, verbose)
         # //////////////// END CODE FOR VISUALIZATION
 
-        '''
-        NOTE: this is the part that's utilizing Greedy epsilon.
-        If possible, we might want to use POLO instead
-        '''
-        # Choosing the next move by epsilon greedy
         if mode == 'explore':
             if np.random.uniform() < epsilon:
                 unexploitd = np.where(
@@ -134,11 +128,11 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
             moveNum = np.argmax(qTable[location[0]][location[1]])
 
         # make the move - transition into a new state
-        moveResponse = makeMove(worldId, numToMove(moveNum))
+        moveResponse = makeMove(world, numToMove(moveNum))
 
         if verbose:
             print("moveResponse", moveResponse)
-        # OK response looks like {"code":"OK","worldId":0,"runId":"931","reward":-0.1000000000,"scoreIncrement":-0.0800000000,"newState":{"x":"0","y":3}}
+        # OK response looks like {"code":"OK","world":0,"runId":"931","reward":-0.1000000000,"scoreIncrement":-0.0800000000,"newState":{"x":"0","y":3}}
 
         if moveResponse["code"] != "OK":
             print(
@@ -146,7 +140,7 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
 
             moveFailed = True
             while moveFailed:
-                moveResponse = makeMove(worldId, numToMove(moveNum))
+                moveResponse = makeMove(world, numToMove(moveNum))
                 time.sleep(2)
                 print("\n\nRetrying move...\n\n")
 
@@ -210,14 +204,14 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
         rewardsAcquired.append(reward)
 
         '''
-        NOTE: not sure why only update Q values if explore, 
+        NOTE: not sure why only update Q values if explore,
         since the point of RL is that we keep learning,
         even if we're traversing a path known
         '''
         if mode == 'explore':
             updateQTable(location, qTable, reward, gamma,
                          newLoc, alpha, moveNum)
-        print(qTable)
+
         # update our current location variable to our now current location
         location = newLoc
 
@@ -243,52 +237,42 @@ def learn(qTable, worldId=0, mode='explore', alpha=0.001, gamma=0.9, epsilon=0.9
                     badStates.append(location)
 
             # update our visualization a last time before moving onto the next traverse
-            v.update_grid(currBoard, goodStates, badStates,
-                          obstacles, runNum, traverse, worldId, location, verbose)
+            v.updateGrid(currBoard, goodStates, badStates,
+                         obstacles, int(traverse), world, location, verbose)
             break
 
     # possibly not needed but this seperates out the plot
     pyplot.figure(2, figsize=(5, 5))
 
     # cumulative average for plotting reward by step over time purposes
-    cumulative_average = np.cumsum(
+    cumulativeAverage = np.cumsum(
         rewardsAcquired) / (np.arange(len(rewardsAcquired)) + 1)
+
     # plot reward over each step of the agent
-    utils.plot_learning(worldId, traverse, cumulative_average, runNum)
+    v.plotLearning(world, int(traverse), cumulativeAverage)
 
     return qTable, goodStates, badStates, obstacles
 
 
-def plot_learning(worldId, traverse, cumulativeAverage, rn):
-    pyplot.figure(2)
-    pyplot.plot(cumulativeAverage)
-    pyplot.xscale('log')
-    if not os.path.exists(f'runs/world_{worldId}/attempt_{rn}'):
-        os.makedirs(f'runs/world_{worldId}/attempt_{rn}')
-    pyplot.savefig(
-        f'runs/world_{worldId}/attempt_{rn}/world_{worldId}_traverse{traverse}learning.png')
-
-
-def epsilonDecay(epsilon, traverse, traverses):
-    '''
-    function to exponentially decrease the episilon value 
-    acroccs the total number of traverses we train on
-    this leads us to exploit less as we progress through traverses 
-    '''
-
+def epsilonDecay(epsilon, traverse):
     epsilon = epsilon * np.exp(-.01 * traverse)
+    #print(f"\nNEW EPSILON: {epsilon}\n")
 
-    print(f"\nNEW EPSILON: {epsilon}\n")
     return epsilon
+
+
+def alphaDecay(alpha, epoch):
+    decayRate = 0.1
+    alpha *= (1 / (1 + decayRate * epoch))
+
+    return alpha
 
 
 '''
 MORE NOTES:
-Alpha needs to be decaying as well, but there's no function for that.
-Will add in tomorrow
-It seems that they're not taking into account of when we're at the border of the map
+-Alpha decay: done
+-It seems that they're not taking into account of when we're at the border of the map
 This makes it inefficient since it might randomly choose to go left when it's already
-at the border of the map and then adding that to "badStates" (which I don't think is 
-even a necessary record). 
-We can think about how to alleviate that tomorrow.
+at the border of the map and then adding that to "badStates" (which I don't think is
+even a necessary record).
 '''

@@ -1,6 +1,8 @@
-
+from main import printQTable
 import numpy as np
 import os
+from model import alphaDecay, epsilonDecay
+import math
 
 '''
 inp = input("Explore(1) or exploit(2)?")
@@ -21,7 +23,7 @@ print(filename)
 print(data)
 
 '''
-
+'''
 world = 0
 
 filename = f"./runs/obstaclesWorld{world}.npy"
@@ -34,16 +36,13 @@ for x in range(40):
     for y in range(40):
         #if x == y:
         #qTable[x][y][x % 4 - 1] = x +
-        #print(f'x={x}, y={y}')
+        print(f'x={x}, y={y}')
         print(qTable[x][y], end="  ")
 
     print()
 #qTable = np.zeros((40, 40, 4))
 #np.save(filename, qTable)
 '''
-
-'''
-
 '''
 def foo(qTable, pos, value):
     x, y, z = pos
@@ -64,5 +63,28 @@ pos = (3, 2, 1)
 
 print(qTable)
 #np.save(filename, qTable)
+
 '''
+
+
+#Another learning rate decay function
+def decayAlpha(epoch):
+    initialRate = 0.9
+    drop = 0.5
+    epochsDrop = 5
+    alpha = initialRate * \
+        math.pow(drop, math.floor((1 + epoch) / epochsDrop))
+    return alpha
+
+#Another epsilon decay function
+
+
+def decayEpsilon(epsilon, epoch):
+    epsilonEnd = 0.001
+    decay = math.pow((epsilonEnd / epsilon), (1 / epoch))
+    epsilon *= decay
+    return epsilon
+
+
+printQTable(0)
 

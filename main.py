@@ -1,15 +1,13 @@
 import model
 import numpy as np
 import os
+import time
 
 
 def explore():
     '''
     Function will explore and learn but also utilize what's learned
     '''
-    gamma = 0.95
-    epsilon = 0.9
-    alpha = 0.5  # learning rate
     world = int(input("Enter the world to be trained: "))
     traverses = int(input("How many traverses? "))
 
@@ -17,65 +15,47 @@ def explore():
     verbose = str(input("Verbose? 'Y' or 'N' "))
     v = True if verbose.capitalize() == "Y" else False
 
-    # Checking and creating files
-    # filepath will contain only .png files of previous runs
-    # .npy file will be saved directly to runs
-    filepath = f"./runs/world{world}/"
-    filename = f"./runs/qTable{world}.npy"
+    # Get saved data
+    qTable, obstacles, goodStates, badStates, parameters = getData(world)
+    gamma, epsilon, alpha, epoch = parameters
 
-    if not (os.path.exists(filepath)):
-        os.makedirs(filepath)
+    # Traversal
+    for traverse in range(1, traverses + 1):
+        start = time.time()
 
-    if not (os.path.isfile(filename)):
-        np.save(filename, np.zeros((40, 40, 4)))
-    qTable = np.load(filename)
-
-    '''
-    # Loading obstacles, goodStates, and badStates
-    if not os.path.isfile(f"./runs/obstaclesWorld{world}.npy"):
-        obstacles = []
-    else:
-        obstacles = np.load(f"./runs/obstaclesWorld{world}.npy")
-
-    if not os.path.isfile(f"./runs/goodStatesWorld{world}.npy"):
-        goodStates = []
-    else:
-        goodStates = np.load(f"./runs/goodStatesWorld{world}.npy")
-
-    if not os.path.isfile(f"./runs/badStatesWorld{world}.npy"):
-        badStates = []
-    else:
-        badStates = np.load(f"./runs/badStatesWorld{world}.npy")
-    '''
-    obstacles, goodStates, badStates = [], [], []
-
-    runNum = len([i for i in os.listdir(f"runs/world{world}")])
-
-    for traverse in range(traverses):
         qTable, goodStates, badStates, obstacles = model.learn(
-            qTable, worldId=world, mode='explore', alpha=alpha,
+            qTable, world=world, mode='explore', alpha=alpha,
             gamma=gamma, epsilon=epsilon, goodStates=goodStates,
-            badStates=badStates, traverse=traverse, obstacles=obstacles,
-            runNum=runNum, verbose=v)
-        epsilon = model.epsilonDecay(epsilon, traverse, traverses)
+            badStates=badStates, traverse=epoch, obstacles=obstacles,
+            verbose=v)
 
-    print(qTable)
+        epoch += 1
+        epsilon = model.epsilonDecay(epsilon, epoch)
+        alpha = model.alphaDecay(alpha, epoch)
+
+        end = time.time()
+
+        print(f'Time taken for world{world}, epoch{epoch}: {end-start}s')
+
+    #print(qTable)
+
     # Save once at the end
-    np.save(filename, qTable)
-    np.save(f"./runs/obstaclesWorld{world}.npy", obstacles)
-    np.save(f"./runs/goodStatesWorld{world}.npy", goodStates)
-    np.save(f"./runs/badStatesWorld{world}.npy", badStates)
+    np.save(f"./runs/world{world}/qTable{world}.npy", qTable)
+
+    #np.save(f"./runs/obstaclesWorld{world}.npy", obstacles)
+    #np.save(f"./runs/goodStatesWorld{world}.npy", goodStates)
+    #np.save(f"./runs/badStatesWorld{world}.npy", badStates)
+
+    np.save(f"./runs/world{world}/parameters{world}.npy",
+            np.array([gamma, epsilon, alpha, epoch]))
 
 
 '''
 NOTE: NOT FIXED YET, DON'T USE EXPLOIT()
-'''
-
 
 def exploit():
-    '''
-    Function will only exploit the current policy for maximizing score
-    '''
+    #Function will only exploit the current policy for maximizing score
+
     epsilon = 0.9
     world = int(input("Enter the world"))
     traverses = int(input("How many traverses?"))
@@ -104,6 +84,69 @@ def exploit():
             qTable, worldId=world, mode="Ex", learningRate=0.0001, gamma=0.9,
             epsilon=epsilon, goodStates=goodStates, badStates=badStates,
             traverse=traverse, obstacles=obstacles, runNum=runNum, verbose=v)
+            
+'''
+
+
+def getData(world):
+    filepath = f"./runs/world{world}/"
+    filename = f"{filepath}qTable{world}.npy"
+
+    if not (os.path.exists(filepath)):
+        os.makedirs(filepath)
+
+    if not (os.path.isfile(filename)):
+        np.save(filename, np.zeros((40, 40, 4)))
+    qTable = np.load(filename)
+
+    '''
+    # Loading obstacles, goodStates, and badStates
+    if not os.path.isfile(f"{filepath}obstaclesWorld{world}.npy"):
+        obstacles = []
+    else:
+        obstacles = np.load(f"{filepath}obstaclesWorld{world}.npy")
+
+    if not os.path.isfile(f"{filepath}goodStatesWorld{world}.npy"):
+        goodStates = []
+    else:
+        goodStates = np.load(f"{filepath}goodStatesWorld{world}.npy")
+
+    if not os.path.isfile(f"{filepath}badStatesWorld{world}.npy"):
+        badStates = []
+    else:
+        badStates = np.load(f"{filepath}badStatesWorld{world}.npy")
+    '''
+
+    obstacles, goodStates, badStates = [], [], []
+
+    #Loading parameters
+    if not os.path.isfile(f'{filepath}parameters{world}.npy'):
+
+        #Beginnning parameters for gamma, epsilon, alpha, and epochs
+        #gamma = 0.95 - no changes
+        #epsilon = 0.9 starting out - then decaying
+        #alpha = 0.5 starting out - then decaying
+        #epochs = the number of runs so far for that world
+        parameters = np.array([0.95, 0.9, 0.5, 0])
+    else:
+        parameters = np.load(f'{filepath}parameters{world}.npy')
+
+    return qTable, obstacles, goodStates, badStates, parameters
+
+
+def printQTable(world=0, param=True):
+    filename = f"./runs/world{world}/qTable{world}.npy"
+    qTable = np.load(filename)
+
+    for x in range(40):
+        for y in range(40):
+            #print(f'x={x}, y={y}')
+            print(qTable[x][y], end="  ")
+
+        print()
+
+    if param:
+        print(np.load(f'./runs/world{world}/parameters{world}.npy'))
 
 
 def main():
@@ -113,6 +156,11 @@ def main():
         explore()
     else:
         exploit()
+
+    while True:
+        stop = input("Stop?")
+        if stop:
+            break
 
 
 if __name__ == "__main__":
