@@ -15,6 +15,7 @@ def explore():
     verbose = str(input("Verbose? 'Y' or 'N' "))
     v = True if verbose.capitalize() == "Y" else False
 
+
     # Get saved data
     qTable, goodStates, badStates, parameters = getData(world)
     gamma, epsilon, alpha, epoch = parameters
