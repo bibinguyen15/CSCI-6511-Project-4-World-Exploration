@@ -113,30 +113,30 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
                 exploitd = np.where(
                     qTable[location[0]][location[1]].astype(int) != 0)[0]
 
-                #Handling avoiding certain moves if at border
+                # Handling avoiding certain moves if at border
                 avoid, void = -1, -1
                 if location[0] == 0:
-                    avoid = 3 #avoid going west
+                    avoid = 3  # avoid going west
                 elif location[0] == 39:
-                    avoid = 2  #avoid going east
+                    avoid = 2  # avoid going east
                 if location[1] == 0:
-                    void = 1 #avoid going south
+                    void = 1  # avoid going south
                 elif location[1] == 39:
-                    void = 0 #avoid going north
+                    void = 0  # avoid going north
 
                 if unexploitd.size != 0:
-                    choice = [i for i in unexploitd if i
-                              != avoid and i != void]
+                    choice = [i for i in unexploitd if i !=
+                              avoid and i != void]
                     moveNum = int(np.random.choice(choice))
                 else:
                     moveNum = int(np.random.choice(exploitd))
             else:
-                #When not exploring randomly
-                #Since we're setting low epsilon, we need to take into consider this
+                # When not exploring randomly
+                # Since we're setting low epsilon, we need to take into consider this
                 if not np.any(qTable[location[0]][location[1]]):
-                    print("Taking random choice:", end=" ")
+                    #print("Taking random choice:", end=" ")
                     moveNum = int(np.random.choice(np.arange(4)))
-                    print(moveNum)
+                    # print(moveNum)
                 moveNum = np.argmax(qTable[location[0]][location[1]])
 
         # If exploiting, we're choosing the move with the highest Q value for that position in the world
@@ -265,8 +265,8 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
 
 def epsilonDecay(epsilon, traverse):
     if traverse < 5 or epsilon > 0.15:
-        epsilon = epsilon * np.exp(-.1 * traverse)
-    #elif epsilon > 0.1:
+        epsilon = epsilon * np.exp(-.11 * traverse)
+    # elif epsilon > 0.1:
     else:
         epsilon = epsilon * np.exp(-.01 * traverse)
 

@@ -15,7 +15,6 @@ def explore():
     verbose = str(input("Verbose? 'Y' or 'N' "))
     v = True if verbose.capitalize() == "Y" else False
 
-
     # Get saved data
     qTable, goodStates, badStates, parameters = getData(world)
     gamma, epsilon, alpha, epoch = parameters
@@ -115,10 +114,10 @@ def getData(world):
 
         # Beginnning parameters for gamma, epsilon, alpha, and epochs
         # gamma = 0.95 - no changes
-        # epsilon = 0.6 starting out - then decaying
+        # epsilon = 0.9 starting out - then decaying
         # alpha = 0.5 starting out - then decaying
         # epochs = the number of runs so far for that world
-        parameters = np.array([0.95, 0.5, 0.1, 0])
+        parameters = np.array([0.95, 0.9, 0.4, 0])
     else:
         parameters = np.load(f'{filepath}parameters{world}.npy')
 

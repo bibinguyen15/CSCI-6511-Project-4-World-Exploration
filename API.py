@@ -55,7 +55,7 @@ def makeMove(world, move):
 
     jsonData = json.loads(response.text)
 
-    #print(jsonData)
+    # print(jsonData)
 
     return jsonData
 
@@ -107,9 +107,9 @@ def resetTeam():
 # getScore()
 # getRuns()
 # getLocation()
-resetTeam()
+# resetTeam()
 
-#enterWorld(0)
+# enterWorld(0)
 # Response: {'code': 'OK', 'worldId': 0, 'runId': 44176, 'state': '0:0'}
 # if fail: {'code': 'FAIL', 'message': 'Cannot enter the world.  You are currently in world: 0'}
 
