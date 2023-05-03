@@ -108,9 +108,9 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
 
         if mode == 'explore':
             if np.random.uniform() < epsilon:
-                unexploitd = np.where(
+                unexploited = np.where(
                     qTable[location[0]][location[1]].astype(int) == 0)[0]
-                exploitd = np.where(
+                exploited = np.where(
                     qTable[location[0]][location[1]].astype(int) != 0)[0]
 
                 # Handling avoiding certain moves if at border
@@ -124,12 +124,15 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
                 elif location[1] == 39:
                     void = 0  # avoid going north
 
-                if unexploitd.size != 0:
-                    choice = [i for i in unexploitd if i !=
+                if unexploited.size != 0:
+                    choice = [i for i in unexploited if i !=
                               avoid and i != void]
-                    moveNum = int(np.random.choice(choice))
+                    if choice:
+                        moveNum = int(np.random.choice(choice))
+                    else:
+                        moveNum = int(np.random.choice(exploited))
                 else:
-                    moveNum = int(np.random.choice(exploitd))
+                    moveNum = int(np.random.choice(exploited))
             else:
                 # When not exploring randomly
                 # Since we're setting low epsilon, we need to take into consider this

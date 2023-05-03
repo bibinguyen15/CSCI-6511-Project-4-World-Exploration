@@ -2,7 +2,7 @@ import model
 import numpy as np
 import os
 import time
-
+from API import *
 
 def explore():
     '''
@@ -140,17 +140,19 @@ def printQTable(world=0, param=True):
 
 
 def main():
-    inp = input("Exploring(1) or exploit(2)? ")
+    resetTeam()
+    explore()
+    # inp = input("Exploring(1) or exploit(2)? ")
 
-    if inp == "1":
-        explore()
-    else:
-        exploit()
+    # if inp == "1":
+    #     explore()
+    # else:
+        # exploit()
 
-    while True:
-        stop = input("Stop?")
-        if stop:
-            break
+    # while True:
+    #     stop = input("Stop?")
+    #     if stop:
+    #         break
 
 
 if __name__ == "__main__":
