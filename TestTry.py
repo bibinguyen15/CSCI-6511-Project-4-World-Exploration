@@ -87,16 +87,19 @@ def decayEpsilon(epsilon, epoch):
 
 
 # printQTable(0)
-world = 3
+world = 10
 parameters = np.load(f"./runs/world{world}/parameters{world}.npy")
 
 gamma, epsilon, alpha, epoch = parameters
 print(epsilon, alpha, epoch)
-epsilon = 0.5
-alpha = 0.3
+
+#np.save(f'./runs/world{world}/save/epsilon.npy', epsilon)
+epsilon = 0.95
+#alpha = 0.3
 #epoch = 1
 
-# for i in range(int(epoch), 11):
+# for i in range(int(epoch), int(epoch) + 5):
+# print(epsilon)
 #epsilon = epsilonDecay(epsilon, i)
 #alpha = alphaDecay(alpha, i)
 

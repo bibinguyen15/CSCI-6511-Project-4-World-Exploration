@@ -271,6 +271,7 @@ def epsilonDecay(epsilon, traverse):
         epsilon = epsilon * np.exp(-.11 * traverse)
     # elif epsilon > 0.1:
     else:
+        #print("Small decay")
         epsilon = epsilon * np.exp(-.01 * traverse)
 
     print(f"\nNEW EPSILON: {epsilon}\n")

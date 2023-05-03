@@ -4,6 +4,7 @@ import os
 import time
 from API import *
 
+
 def explore():
     '''
     Function will explore and learn but also utilize what's learned
@@ -140,14 +141,14 @@ def printQTable(world=0, param=True):
 
 
 def main():
-    resetTeam()
+    # resetTeam()
     explore()
     # inp = input("Exploring(1) or exploit(2)? ")
 
     # if inp == "1":
     #     explore()
     # else:
-        # exploit()
+    # exploit()
 
     # while True:
     #     stop = input("Stop?")
