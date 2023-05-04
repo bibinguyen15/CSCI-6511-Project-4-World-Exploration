@@ -7,38 +7,7 @@ import os
 import time
 
 
-def numToMove(num):
-    '''
-    Converting each position in np array into direction
-    '''
-    if num == 0:
-        return 'N'
-    elif num == 1:
-        return 'S'
-    elif num == 2:
-        return 'E'
-    elif num == 3:
-        return 'W'
-
-    # return False
-    return 'ERROR!'
-
-
-def updateQTable(location, qTable, reward, gamma, newLoc, alpha, move):
-    '''
-    new Q(s,a) = (1-alpha)* Q(s,a) + alpha * [R(s,a,s') + gamma * maxQ(s',a')]
-    '''
-
-    sample = reward + gamma * qTable[newLoc[0], newLoc[1], :].max()
-
-    newQ = (1 - alpha) * qTable[location[0], location[1],
-                                move] + alpha * sample
-
-    # update q_table with new value
-    qTable[location[0], location[1], move] = newQ
-
-
-def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, traverse, verbose=True):
+def learn(qTable, world, alpha, gamma, epsilon, goodStates, badStates, traverse, verbose=True):
     '''
     ACTIVE learning function where we are traversing the world
     '''
@@ -106,41 +75,32 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
                      int(traverse), world, location, verbose)
         # //////////////// END CODE FOR VISUALIZATION
 
-        if mode == 'explore':
-            if np.random.uniform() < epsilon:
-                unexploited = np.where(
-                    qTable[location[0]][location[1]].astype(int) == 0)[0]
-                exploited = np.where(
-                    qTable[location[0]][location[1]].astype(int) != 0)[0]
+        if np.random.uniform() < epsilon:
+            unexploited = np.where(
+                qTable[location[0]][location[1]].astype(int) == 0)[0]
+            exploited = np.where(
+                qTable[location[0]][location[1]].astype(int) != 0)[0]
 
-                # Handling avoiding certain moves if at border
-                avoid, void = -1, -1
-                if location[0] == 0:
-                    avoid = 3  # avoid going west
-                elif location[0] == 39:
-                    avoid = 2  # avoid going east
-                if location[1] == 0:
-                    void = 1  # avoid going south
-                elif location[1] == 39:
-                    void = 0  # avoid going north
+            # Handling avoiding certain moves if at border
+            avoid, void = -1, -1
+            if location[0] == 0:
+                avoid = 3  # avoid going west
+            elif location[0] == 39:
+                avoid = 2  # avoid going east
+            if location[1] == 0:
+                void = 1  # avoid going south
+            elif location[1] == 39:
+                void = 0  # avoid going north
 
-                if unexploited.size != 0:
-                    choice = [i for i in unexploited if i !=
-                              avoid and i != void]
-                    if choice:
-                        moveNum = int(np.random.choice(choice))
-                    else:
-                        moveNum = int(np.random.choice(exploited))
+            if unexploited.size != 0:
+                choice = [i for i in unexploited if i
+                          != avoid and i != void]
+                if choice:
+                    moveNum = int(np.random.choice(choice))
                 else:
                     moveNum = int(np.random.choice(exploited))
             else:
-                # When not exploring randomly
-                # Since we're setting low epsilon, we need to take into consider this
-                if not np.any(qTable[location[0]][location[1]]):
-                    #print("Taking random choice:", end=" ")
-                    moveNum = int(np.random.choice(np.arange(4)))
-                    # print(moveNum)
-                moveNum = np.argmax(qTable[location[0]][location[1]])
+                moveNum = int(np.random.choice(exploited))
 
         # If exploiting, we're choosing the move with the highest Q value for that position in the world
         else:
@@ -151,7 +111,6 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
 
         if verbose:
             print("moveResponse", moveResponse)
-        # OK response looks like {"code":"OK","world":0,"runId":"931","reward":-0.1000000000,"scoreIncrement":-0.0800000000,"newState":{"x":"0","y":3}}
 
         if moveResponse["code"] != "OK":
             print(
@@ -171,37 +130,6 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
             newLoc = int(moveResponse["newState"]["x"]), int(
                 moveResponse["newState"]["y"])
 
-            '''
-            NOTE: note sure any of this is needed but will leave it here for now until further information is found
-
-
-            # Get expected location
-            expectedLoc = list(location)  # since tuple cannot be changed
-
-            # convert the move we tried to make into an expected location where we think we'll end up (expected_loc)
-            recentMove = numToMove(moveNum)
-
-            if recentMove == "N":
-                expectedLoc[1] += 1
-            elif recentMove == "S":
-                expectedLoc[1] -= 1
-            elif recentMove == "E":
-                expectedLoc[0] += 1
-            elif recentMove == "W":
-                expectedLoc[0] -= 1
-
-            expectedLoc = expectedLoc
-
-            if verbose:
-                print(f"New Loc: {newLoc} (where we actually are now)")
-                print(
-                    f"Expected Loc: {expectedLoc} (where we thought we were going to be)")
-            '''
-
-            '''
-            NOTE: not sure if this needs to be
-            Why would append newLoc if the newLoc has been visited before?
-            '''
             # continue to track where we have been
             visited.append(newLoc)
 
@@ -209,20 +137,14 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
             # we hit a terminal state
             terminalState = True
             print(
-                "\n\n--------------------------\nTERMINAL STATE ENCOUNTERED\n--------------------------\n\n")
+                "\n\n--------------------------\nTERMINAL STATE\n--------------------------\n\n")
 
         # Calculate reward
         reward = float(moveResponse["reward"])
         rewardsAcquired.append(reward)
 
-        '''
-        NOTE: not sure why only update Q values if explore,
-        since the point of RL is that we keep learning,
-        even if we're traversing a path known
-        '''
-        if mode == 'explore':
-            updateQTable(location, qTable, reward, gamma,
-                         newLoc, alpha, moveNum)
+        updateQTable(location, qTable, reward, gamma,
+                     newLoc, alpha, moveNum)
 
         # update our current location variable to our now current location
         location = newLoc
@@ -231,12 +153,6 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
         # and we need to end our current training traverse
         if terminalState:
             print(f"Terminal State REWARD: {reward}")
-
-            '''
-            NOTE: I just realized at this point that aside from this, we're not taking
-            into account the good or bad states at all when choosing a move.
-            Something we can look into tomorrow to implement for a more successful algo
-            '''
 
             if reward > 0:
                 # we hit a positive reward so keep track of it as a good reward terminal-state
@@ -266,6 +182,37 @@ def learn(qTable, world, mode, alpha, gamma, epsilon, goodStates, badStates, tra
     return qTable, goodStates, badStates
 
 
+def numToMove(num):
+    '''
+    Converting each position in np array into direction
+    '''
+    if num == 0:
+        return 'N'
+    elif num == 1:
+        return 'S'
+    elif num == 2:
+        return 'E'
+    elif num == 3:
+        return 'W'
+
+    # return False
+    return 'ERROR!'
+
+
+def updateQTable(location, qTable, reward, gamma, newLoc, alpha, move):
+    '''
+    new Q(s,a) = (1-alpha)* Q(s,a) + alpha * [R(s,a,s') + gamma * maxQ(s',a')]
+    '''
+
+    sample = reward + gamma * qTable[newLoc[0], newLoc[1], :].max()
+
+    newQ = (1 - alpha) * qTable[location[0], location[1],
+                                move] + alpha * sample
+
+    # update q_table with new value
+    qTable[location[0], location[1], move] = newQ
+
+
 def epsilonDecay(epsilon, traverse):
     if traverse < 5 or epsilon > 0.15:
         epsilon = epsilon * np.exp(-.11 * traverse)
@@ -274,7 +221,7 @@ def epsilonDecay(epsilon, traverse):
         #print("Small decay")
         epsilon = epsilon * np.exp(-.01 * traverse)
 
-    print(f"\nNEW EPSILON: {epsilon}\n")
+    print(f"\nEPSILON: {epsilon}\n")
 
     return epsilon
 
@@ -283,16 +230,7 @@ def alphaDecay(alpha, epoch):
     decayRate = 0.1
     alpha *= (1 / (1 + decayRate * epoch))
 
-    print(f"\nNEW ALPHA: {alpha}\n")
+    print(f"\nALPHA: {alpha}\n")
 
     return alpha
 
-
-'''
-MORE NOTES:
--Alpha decay: done
--It seems that they're not taking into account of when we're at the border of the map
-This makes it inefficient since it might randomly choose to go left when it's already
-at the border of the map and then adding that to "badStates" (which I don't think is
-even a necessary record).
-'''

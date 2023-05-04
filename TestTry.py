@@ -103,5 +103,5 @@ epsilon = 0.95
 #epsilon = epsilonDecay(epsilon, i)
 #alpha = alphaDecay(alpha, i)
 
-np.save(f"./runs/world{world}/parameters{world}.npy",
-        [gamma, epsilon, alpha, epoch])
+# np.save(f"./runs/world{world}/parameters{world}.npy",
+# [gamma, epsilon, alpha, epoch])

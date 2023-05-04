@@ -25,7 +25,7 @@ def explore():
         start = time.time()
 
         qTable, goodStates, badStates = model.learn(
-            qTable, world=world, mode='explore', alpha=alpha,
+            qTable, world=world, alpha=alpha,
             gamma=gamma, epsilon=epsilon, goodStates=goodStates,
             badStates=badStates, traverse=epoch,
             verbose=v)
@@ -47,44 +47,6 @@ def explore():
 
         np.save(f"./runs/world{world}/parameters{world}.npy",
                 np.array([gamma, epsilon, alpha, epoch]))
-
-
-'''
-NOTE: NOT FIXED YET, DON'T USE EXPLOIT()
-
-def exploit():
-    #Function will only exploit the current policy for maximizing score
-
-    epsilon = 0.9
-    world = int(input("Enter the world"))
-    traverses = int(input("How many traverses?"))
-    verbose = str(input("Verbose? 'Y' or 'N'"))
-    filePath = f"./runs/qTableWorld{world}"
-
-    qTable = np.load(filePath + ".npy")
-
-    if verbose == "Y":
-        v = True
-    else:
-        v = False
-
-    obstacles = np.load(f"./runs/obstaclesWorld{world}" + ".npy")
-    goodStates = np.load(f"./runs/goodStatesWorld{world}" + ".npy")
-    badStates = np.load(f"./runs/badStatesWorld{world}" + ".npy")
-
-    obstacles = obstacles.tolist()
-    goodStates = goodStates.tolist()
-    badStates = badStates.tolist()
-
-    runNum = len([i for i in os.listdir(f"runs/world{world}")])
-
-    for traverse in range(traverses):
-        qTable, goodStates, badStates, obstacles = model.learn(
-            qTable, worldId=world, mode="Ex", learningRate=0.0001, gamma=0.9,
-            epsilon=epsilon, goodStates=goodStates, badStates=badStates,
-            traverse=traverse, obstacles=obstacles, runNum=runNum, verbose=v)
-            
-'''
 
 
 def getData(world):
@@ -141,19 +103,8 @@ def printQTable(world=0, param=True):
 
 
 def main():
-    # resetTeam()
+    resetTeam()
     explore()
-    # inp = input("Exploring(1) or exploit(2)? ")
-
-    # if inp == "1":
-    #     explore()
-    # else:
-    # exploit()
-
-    # while True:
-    #     stop = input("Stop?")
-    #     if stop:
-    #         break
 
 
 if __name__ == "__main__":
