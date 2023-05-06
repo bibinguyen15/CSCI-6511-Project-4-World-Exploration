@@ -104,7 +104,7 @@ def resetTeam():
     return jsonData['code']
 
 
-# getScore()
+getScore()
 # getRuns()
 # getLocation()
 # resetTeam()

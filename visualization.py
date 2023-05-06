@@ -5,7 +5,7 @@ import random
 import time
 
 
-def updateGrid(data, goodStates, badStates, epoch, world, location, verbose):
+def updatePlot(data, goodStates, badStates, epoch, world, location, verbose):
     pyplot.figure(1)
     pyplot.clf()
     pyplot.imshow(data)

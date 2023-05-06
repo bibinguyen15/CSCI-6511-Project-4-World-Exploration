@@ -103,7 +103,7 @@ def printQTable(world=0, param=True):
 
 
 def main():
-    resetTeam()
+    # resetTeam()
     explore()
 
 

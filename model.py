@@ -8,9 +8,9 @@ import time
 
 
 def learn(qTable, world, alpha, gamma, epsilon, goodStates, badStates, traverse, verbose=True):
-    '''
+    """
     ACTIVE learning function where we are traversing the world
-    '''
+    """
     # Spawning into the world
     spawn = enterWorld(world)
 
@@ -51,12 +51,12 @@ def learn(qTable, world, alpha, gamma, epsilon, goodStates, badStates, traverse,
     good = False
 
     # accumulate the rewards so far for plotting reward over step
-    rewardsAcquired = []
+    rewardsAcc = []
 
-    # create a list of everywhere we've been for the viz
+    # where we've been
     visited = []
 
-    # SET UP FIGURE FOR VISUALIZATION.
+    # Set up for visualization
     pyplot.figure(1, figsize=(10, 10))
     currBoard = [[float('-inf')] * 40 for temp in range(40)]
 
@@ -64,16 +64,15 @@ def learn(qTable, world, alpha, gamma, epsilon, goodStates, badStates, traverse,
     visited.append(location)
 
     while True:
-        # ////////////////// CODE FOR VISUALIZATION
+        # Visualization code
         currBoard[location[1]][location[0]] = 1
         for i in range(len(currBoard)):
             for j in range(len(currBoard)):
-                if (currBoard[i][j] != 0):
+                if currBoard[i][j] != 0:
                     currBoard[i][j] -= .1
 
-        v.updateGrid(currBoard, goodStates, badStates,
+        v.updatePlot(currBoard, goodStates, badStates,
                      int(traverse), world, location, verbose)
-        # //////////////// END CODE FOR VISUALIZATION
 
         if np.random.uniform() < epsilon:
             unexploited = np.where(
@@ -137,11 +136,11 @@ def learn(qTable, world, alpha, gamma, epsilon, goodStates, badStates, traverse,
             # we hit a terminal state
             terminalState = True
             print(
-                "\n\n--------------------------\nTERMINAL STATE\n--------------------------\n\n")
+                "\n\nTERMINAL STATE\n\n")
 
         # Calculate reward
         reward = float(moveResponse["reward"])
-        rewardsAcquired.append(reward)
+        rewardsAcc.append(reward)
 
         updateQTable(location, qTable, reward, gamma,
                      newLoc, alpha, moveNum)
@@ -164,28 +163,27 @@ def learn(qTable, world, alpha, gamma, epsilon, goodStates, badStates, traverse,
                 else:
                     badStates.append(location)
 
-            # update our visualization a last time before moving onto the next traverse
-            v.updateGrid(currBoard, goodStates, badStates,
+            # update visualization before moving onto the next traverse
+            v.updatePlot(currBoard, goodStates, badStates,
                          int(traverse), world, location, verbose)
             break
 
-    # possibly not needed but this seperates out the plot
     pyplot.figure(2, figsize=(5, 5))
 
-    # cumulative average for plotting reward by step over time purposes
+    # cumulative average for plotting reward
     cumulativeAverage = np.cumsum(
-        rewardsAcquired) / (np.arange(len(rewardsAcquired)) + 1)
+        rewardsAcc) / (np.arange(len(rewardsAcc)) + 1)
 
-    # plot reward over each step of the agent
+    # plot reward over each step
     v.plotLearning(world, int(traverse), cumulativeAverage)
 
     return qTable, goodStates, badStates
 
 
 def numToMove(num):
-    '''
+    """
     Converting each position in np array into direction
-    '''
+    """
     if num == 0:
         return 'N'
     elif num == 1:
@@ -200,9 +198,9 @@ def numToMove(num):
 
 
 def updateQTable(location, qTable, reward, gamma, newLoc, alpha, move):
-    '''
+    """
     new Q(s,a) = (1-alpha)* Q(s,a) + alpha * [R(s,a,s') + gamma * maxQ(s',a')]
-    '''
+    """
 
     sample = reward + gamma * qTable[newLoc[0], newLoc[1], :].max()
 
@@ -214,6 +212,9 @@ def updateQTable(location, qTable, reward, gamma, newLoc, alpha, move):
 
 
 def epsilonDecay(epsilon, traverse):
+    """
+    Decaying epsilon to decrease the amount of random traveling
+    """
     if traverse < 5 or epsilon > 0.15:
         epsilon = epsilon * np.exp(-.11 * traverse)
     # elif epsilon > 0.1:
@@ -227,6 +228,9 @@ def epsilonDecay(epsilon, traverse):
 
 
 def alphaDecay(alpha, epoch):
+    """
+    Decaying alpha to decrease the rate of which the new values are added
+    """
     decayRate = 0.1
     alpha *= (1 / (1 + decayRate * epoch))
 
