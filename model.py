@@ -50,9 +50,6 @@ def learn(qTable, world, alpha, gamma, epsilon, goodStates, badStates, traverse,
     terminalState = False
     good = False
 
-    # accumulate the rewards so far for plotting reward over step
-    rewardsAcc = []
-
     # where we've been
     visited = []
 
@@ -74,6 +71,7 @@ def learn(qTable, world, alpha, gamma, epsilon, goodStates, badStates, traverse,
         v.updatePlot(currBoard, goodStates, badStates,
                      int(traverse), world, location, verbose)
 
+        #Choosing to explore or exploit based on epsilon greedy
         if np.random.uniform() < epsilon:
             unexploited = np.where(
                 qTable[location[0]][location[1]].astype(int) == 0)[0]
@@ -92,61 +90,59 @@ def learn(qTable, world, alpha, gamma, epsilon, goodStates, badStates, traverse,
                 void = 0  # avoid going north
 
             if unexploited.size != 0:
-                choice = [i for i in unexploited if i
-                          != avoid and i != void]
+                choice = [i for i in unexploited if i !=
+                          avoid and i != void]
                 if choice:
-                    moveNum = int(np.random.choice(choice))
+                    move = int(np.random.choice(choice))
                 else:
-                    moveNum = int(np.random.choice(exploited))
+                    move = int(np.random.choice(exploited))
             else:
-                moveNum = int(np.random.choice(exploited))
+                move = int(np.random.choice(exploited))
 
         # If exploiting, we're choosing the move with the highest Q value for that position in the world
         else:
-            moveNum = np.argmax(qTable[location[0]][location[1]])
+            move = np.argmax(qTable[location[0]][location[1]])
 
         # make the move - transition into a new state
-        moveResponse = makeMove(world, numToMove(moveNum))
+        moveJson = makeMove(world, numToMove(move))
 
         if verbose:
-            print("moveResponse", moveResponse)
+            print("moveJson", moveJson)
 
-        if moveResponse["code"] != "OK":
+        if moveJson["code"] != "OK":
             print(
-                f"makeMove() failed\nResponse: {moveResponse}")
+                f"makeMove() failed\nResponse: {moveJson}")
 
             moveFailed = True
             while moveFailed:
-                moveResponse = makeMove(world, numToMove(moveNum))
+                moveJson = makeMove(world, numToMove(move))
                 time.sleep(2)
                 print("\n\nRetrying move...\n\n")
 
-                if moveResponse["code"] == 'OK':
+                if moveJson["code"] == 'OK':
                     moveFailed = False
 
-        # Not in terminal state
-        if moveResponse["newState"] is not None:
-            newLoc = int(moveResponse["newState"]["x"]), int(
-                moveResponse["newState"]["y"])
-
-            # continue to track where we have been
-            visited.append(newLoc)
-
-        else:
-            # we hit a terminal state
+        if moveJson["newState"] is None:
+            # terminal state
             terminalState = True
             print(
                 "\n\nTERMINAL STATE\n\n")
+        else:
+            newLocation = int(moveJson["newState"]["x"]), int(
+                moveJson["newState"]["y"])
+
+            # continue to track where we have been for visualization
+            visited.append(newLocation)
 
         # Calculate reward
-        reward = float(moveResponse["reward"])
-        rewardsAcc.append(reward)
+        reward = float(moveJson["reward"])
+        #rewardsAcc.append(reward)
 
         updateQTable(location, qTable, reward, gamma,
-                     newLoc, alpha, moveNum)
+                     newLocation, alpha, move)
 
         # update our current location variable to our now current location
-        location = newLoc
+        location = newLocation
 
         # if we are in a terminal state then we need to collect the information for our visualization
         # and we need to end our current training traverse
@@ -167,15 +163,6 @@ def learn(qTable, world, alpha, gamma, epsilon, goodStates, badStates, traverse,
             v.updatePlot(currBoard, goodStates, badStates,
                          int(traverse), world, location, verbose)
             break
-
-    pyplot.figure(2, figsize=(5, 5))
-
-    # cumulative average for plotting reward
-    cumulativeAverage = np.cumsum(
-        rewardsAcc) / (np.arange(len(rewardsAcc)) + 1)
-
-    # plot reward over each step
-    v.plotLearning(world, int(traverse), cumulativeAverage)
 
     return qTable, goodStates, badStates
 
@@ -222,7 +209,7 @@ def epsilonDecay(epsilon, traverse):
         #print("Small decay")
         epsilon = epsilon * np.exp(-.01 * traverse)
 
-    print(f"\nEPSILON: {epsilon}\n")
+    print(f"\nNew Epsilon: {epsilon}\n")
 
     return epsilon
 
@@ -234,7 +221,7 @@ def alphaDecay(alpha, epoch):
     decayRate = 0.1
     alpha *= (1 / (1 + decayRate * epoch))
 
-    print(f"\nALPHA: {alpha}\n")
+    print(f"\nNew Alpha: {alpha}\n")
 
     return alpha
 

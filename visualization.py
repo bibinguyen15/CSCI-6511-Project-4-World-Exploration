@@ -30,12 +30,3 @@ def updatePlot(data, goodStates, badStates, epoch, world, location, verbose):
     pyplot.savefig(
         "./runs/world{}/visuals/epoch{}.png".format(world, epoch))
 
-
-def plotLearning(world, epoch, cumulativeAverage):
-    plt.figure(2)
-    plt.plot(cumulativeAverage)
-    plt.xscale('log')
-    if not os.path.exists(f'runs/world{world}/visuals/learning/'):
-        os.makedirs(f'runs/world{world}/visuals/learning/')
-    plt.savefig(
-        f'runs/world{world}/visuals/learning/epoch{epoch}learning.png')
